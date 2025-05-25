@@ -1,0 +1,42 @@
+schema_version: 0
+flavor: go
+region: oregon
+shell: zsh
+packages:
+  - curl
+repositories:
+  - repo: https://github.com/romkatv/powerlevel10k.git
+    dest: /tmp/powerlevel10k # Temp folder because oh-my-zsh wants empty .oh-my-zsh
+tasks:  
+  - name: Install Oh My zsh
+    command: sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    when: on-create
+  - name: Install Meslo fonts
+    command: sudo wget -P /usr/local/share/fonts \
+        "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Regular.ttf" \
+        "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold.ttf" \
+        "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Italic.ttf" \
+        "https://github.com/romkatv/powerlevel10k-media/raw/master/MesloLGS%20NF%20Bold%20Italic.ttf" && \
+        fc-cache -fv
+    when: on-create
+  - name: Download zsh-autosuggestions
+    command: git clone https://github.com/zsh-users/zsh-autosuggestions.git /home/user/.oh-my-zsh/custom/plugins/zsh-autosuggestions 
+    when: on-create
+  - name: Download zsh-syntax-higlighting
+    command: git clone https://github.com/zsh-users/zsh-syntax-highlighting.git /home/user/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting
+    when: on-create
+  - name: Download zsh-completions
+    command: git clone https://github.com/zsh-users/zsh-completions /home/user/.oh-my-zsh/custom/plugins/zsh-completions
+    when: on-create
+  - name: Move power10k repo
+    command: mv /tmp/powerlevel10k /home/user/.oh-my-zsh/custom/themes/powerlevel10k
+    when: on-create
+  - name: Replace p10k config
+    command: curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/.p10k.zsh -o ~/.p10k.zsh
+    when: on-create
+  - name: Replace zsh config
+    command: curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/.zshrc -o ~/.zshrc
+    when: on-create
+  - name: Set time zone
+    command: sudo ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
+    when: on-create
