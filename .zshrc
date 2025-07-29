@@ -111,3 +111,12 @@ source $ZSH/oh-my-zsh.sh
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Claude setup
+claude_setup() {
+        gcloud auth application-default login;
+        gcloud auth application-default set-quota-project progsys-genai-198685;
+        export ANTHROPIC_VERTEX_PROJECT_ID=\"progsys-genai-198685\";
+        export CLAUDE_CODE_USE_VERTEX=1;
+        export CLOUD_ML_REGION=\"us-east5\";
+}
