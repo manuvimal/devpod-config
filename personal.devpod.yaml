@@ -39,4 +39,4 @@ tasks:
     when: on-create
   - name: Set time zone
     command: sudo ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
-    when: on-create
+    when: on-create, on-restart
