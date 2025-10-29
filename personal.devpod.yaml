@@ -40,3 +40,9 @@ tasks:
   - name: Set time zone
     command: sudo ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
     when: on-create, on-restart
+  - name: Install tmux
+    command: sudo apt install tmux
+    when: on-create
+  - name: Add tmux config
+    command: curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/.tmux.conf -o ~/.tmux.conf
+    when: on-create
