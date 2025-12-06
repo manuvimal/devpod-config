@@ -114,3 +114,7 @@ alias glmy='git log main..HEAD --author="$(git config user.name)"'
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# Make Ctrl+U delete from cursor to beginning (not entire line)
+bindkey "^U" backward-kill-line
+
