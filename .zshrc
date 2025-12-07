@@ -118,3 +118,8 @@ alias glmy='git log main..HEAD --author="$(git config user.name)"'
 # Make Ctrl+U delete from cursor to beginning (not entire line)
 bindkey "^U" backward-kill-line
 
+# Load custom completion functions (MUST be after oh-my-zsh loads)
+[[ -f ~/.zsh_custom_completions ]] && source ~/.zsh_custom_completions
+
+# Force reload completion system to apply custom completions
+autoload -Uz compinit && compinit
