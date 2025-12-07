@@ -28,6 +28,9 @@ tasks:
   - name: Download zsh-completions
     command: git clone https://github.com/zsh-users/zsh-completions /home/user/.oh-my-zsh/custom/plugins/zsh-completions
     when: on-create
+  - name: Download custom git completions
+    command: curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/.zsh_custom_completions -o ~/.zsh_custom_completions
+    when: on-create
   - name: Move power10k repo
     command: mv /tmp/powerlevel10k /home/user/.oh-my-zsh/custom/themes/powerlevel10k
     when: on-create
