@@ -1,0 +1,81 @@
+# ===== CUSTOM GIT BRANCH COMPLETION =====
+
+# Remove the alias first (oh-my-zsh git plugin creates it)
+unalias gco 2>/dev/null
+
+# Smart function wrapper for git checkout
+# Automatically prepends username/ if the branch exists with that prefix
+gco() {
+  local branch_name="$1"
+  local user_prefix="$(whoami)/"
+
+  # If no argument, just run git checkout as-is
+  if [[ -z "$branch_name" ]]; then
+    git checkout
+    return
+  fi
+
+  # Check if branch exists as-is (full name or non-prefixed branch)
+  if git show-ref --verify --quiet "refs/heads/$branch_name" 2>/dev/null; then
+    git checkout "$@"
+    return
+  fi
+
+  # Check if branch exists with user prefix (for short names)
+  if git show-ref --verify --quiet "refs/heads/$user_prefix$branch_name" 2>/dev/null; then
+    echo "→ Checking out: $user_prefix$branch_name"
+    git checkout "$user_prefix$branch_name" "${@:2}"
+    return
+  fi
+
+  # Neither exists, let git checkout handle it (will show error)
+  git checkout "$@"
+}
+
+# Custom completion for gco - shows SHORT names (without prefix)
+_gco_completion() {
+  local -a all_branches final_completions
+  local current user_prefix
+
+  # Get current word being completed
+  current="${words[CURRENT]}"
+
+  # Get all local branches (remove the * and whitespace)
+  all_branches=(${(f)"$(git branch 2>/dev/null | sed 's/^[* ]*//')"})
+
+  # If no branches found, return
+  [[ ${#all_branches} -eq 0 ]] && return 0
+
+  # Use whoami to get the user prefix
+  user_prefix="$(whoami)/"
+
+  # Build completion list - SHORT names for user branches, full names for others
+  final_completions=()
+
+  for branch in $all_branches; do
+    if [[ "$branch" == "$user_prefix"* ]]; then
+      # Branch has our prefix - show SUFFIX only
+      local suffix="${branch#$user_prefix}"
+      if [[ "$suffix" == "$current"* ]]; then
+        final_completions+=("$suffix")
+      fi
+    else
+      # Non-prefixed branches (main, develop, etc.) - show full name
+      if [[ "$branch" == "$current"* ]]; then
+        final_completions+=("$branch")
+      fi
+    fi
+  done
+
+  # Add completions - simple and direct
+  [[ ${#final_completions} -gt 0 ]] && compadd -a final_completions
+
+  # Always return 0 to block fallback to git completion
+  return 0
+}
+
+# Completely remove any git-related completion for gco
+compdef -d gco 2>/dev/null
+
+# Register our custom completion
+compdef _gco_completion gco
