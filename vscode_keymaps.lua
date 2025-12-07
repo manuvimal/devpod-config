@@ -52,7 +52,7 @@ vim.keymap.set('n', '<leader>l', function()
 end, { desc = 'Focus right pane' })
 
 -- ===== SYMBOL NAVIGATION =====
-vim.keymap.set('n', 'gn', function()
+vim.keymap.set('n', 'gs', function()
     vscode.action('workbench.action.gotoSymbol')
 end, { desc = 'Go to symbol in file' })
 
@@ -75,3 +75,41 @@ end, { desc = 'Quick open file' })
 vim.keymap.set({'n', 'v'}, '<leader>fd', function()
     vscode.action('editor.action.formatDocument')
 end, { desc = 'Format document' })
+
+-- ===== SYMBOL/SEARCH NAVIGATION =====
+-- Workspace-wide symbol search
+vim.keymap.set({'n', 'v'}, '<leader>gs', function()
+    vscode.action('workbench.action.showAllSymbols')
+end, { desc = 'Show all symbols in workspace' })
+
+-- ===== NAVIGATION HISTORY =====
+vim.keymap.set('n', 'gp', function()
+    vscode.action('workbench.action.navigateBack')
+end, { desc = 'Navigate back' })
+
+vim.keymap.set('n', 'gn', function()
+    vscode.action('workbench.action.navigateForward')
+end, { desc = 'Navigate forward' })
+
+-- ===== ERROR NAVIGATION =====
+vim.keymap.set('n', ']d', function()
+    vscode.action('editor.action.marker.next')
+end, { desc = 'Next error/warning' })
+
+vim.keymap.set('n', '[d', function()
+    vscode.action('editor.action.marker.prev')
+end, { desc = 'Previous error/warning' })
+
+-- ===== CODE REFACTORING =====
+vim.keymap.set('n', '<leader>rn', function()
+    vscode.action('editor.action.rename')
+end, { desc = 'Rename symbol' })
+
+vim.keymap.set('n', '<leader>oi', function()
+    vscode.action('editor.action.organizeImports')
+end, { desc = 'Organize imports' })
+
+-- ===== PEEK ACTIONS =====
+vim.keymap.set('n', 'gP', function()
+    vscode.action('editor.action.peekDefinition')
+end, { desc = 'Peek definition inline' })
