@@ -110,6 +110,9 @@ source $ZSH/oh-my-zsh.sh
 # Custom git alias - show my commits in current branch only and not main
 alias glmy='git log main..HEAD --author="$(git config user.name)"'
 
+#alias to commit and publish (Will publish entire stack if it's a stack)
+gtfo() { gcam "$1" && arh publish --full-stack --no-interactive }
+
 #source ~/powerlevel10k/powerlevel10k.zsh-theme
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
