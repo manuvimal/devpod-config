@@ -1,0 +1,66 @@
+#!/bin/bash
+# initium — Script to bootstrap a worktree + tmux session from a JIRA ticket number
+set -euo pipefail
+
+REPO="/home/user/go-code"
+WORKTREE_BASE="$REPO/.claude/worktrees"
+GIT_USER="manu.vimal"
+
+if [ -z "${1:-}" ]; then
+    echo "Usage: initium <TICKET>"
+    echo "  e.g. initium CODE-6900"
+    exit 1
+fi
+
+TICKET="$1"
+WT_PATH="$WORKTREE_BASE/$TICKET"
+BRANCH="$GIT_USER/$TICKET"
+
+# If tmux session already exists, just attach
+if tmux has-session -t "$TICKET" 2>/dev/null; then
+    echo "Session '$TICKET' already exists, attaching..."
+    exec tmux attach -t "$TICKET"
+fi
+
+# Create worktree if it doesn't exist
+if [ ! -d "$WT_PATH" ]; then
+    echo "Fetching latest main..."
+    git -C "$REPO" fetch origin main
+
+    echo "Creating worktree at $WT_PATH with branch $BRANCH..."
+    mkdir -p "$WORKTREE_BASE"
+    git -C "$REPO" worktree add "$WT_PATH" -b "$BRANCH" origin/main
+else
+    echo "Worktree already exists at $WT_PATH"
+fi
+
+# Detect if work is already in progress
+FRESH=true
+COMMITS_AHEAD=$(git -C "$WT_PATH" rev-list --count origin/main..HEAD 2>/dev/null || echo "0")
+HAS_CHANGES=$(git -C "$WT_PATH" status --porcelain 2>/dev/null | head -1)
+
+if [ "$COMMITS_AHEAD" -gt 0 ] || [ -n "$HAS_CHANGES" ]; then
+    FRESH=false
+fi
+
+# Build the claude command for window 1
+if [ "$FRESH" = true ]; then
+    CLAUDE_CMD="claude --name \"$TICKET\" \"/agent lets_begin $TICKET\""
+else
+    echo "Existing work detected ($COMMITS_AHEAD commits ahead). Launching claude without agent."
+    CLAUDE_CMD="claude --name \"$TICKET\" --resume \"$TICKET\""
+fi
+
+# Create tmux session
+# Window 1: named after ticket, runs claude
+tmux new-session -d -s "$TICKET" -n "$TICKET" -c "$WT_PATH"
+tmux send-keys -t "$TICKET:$TICKET" "$CLAUDE_CMD" Enter
+
+# Window 2: shell in worktree
+tmux new-window -t "$TICKET" -n "shell" -c "$WT_PATH"
+
+# Select window 1 so we land on claude
+tmux select-window -t "$TICKET:$TICKET"
+
+# Attach
+exec tmux attach -t "$TICKET"
