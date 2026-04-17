@@ -1,10 +1,11 @@
 #!/bin/bash
-# initium — Script to bootstrap a worktree + tmux session from a JIRA ticket number
+# initium — Bootstrap a worktree + tmux session from a JIRA ticket number
 set -euo pipefail
 
 REPO="/home/user/go-code"
 WORKTREE_BASE="$REPO/.claude/worktrees"
 GIT_USER="manu.vimal"
+CLAUDE="aifx agent run claude --model=claude-opus-4-6"
 
 if [ -z "${1:-}" ]; then
     echo "Usage: initium <TICKET>"
@@ -45,22 +46,22 @@ fi
 
 # Build the claude command for window 1
 if [ "$FRESH" = true ]; then
-    CLAUDE_CMD="claude --name \"$TICKET\" \"/agent lets_begin $TICKET\""
+    CLAUDE_CMD="$CLAUDE --name \"$TICKET\" --agent lets-begin \"$TICKET\""
 else
     echo "Existing work detected ($COMMITS_AHEAD commits ahead). Launching claude without agent."
-    CLAUDE_CMD="claude --name \"$TICKET\" --resume \"$TICKET\""
+    CLAUDE_CMD="$CLAUDE --name \"$TICKET\" --resume \"$TICKET\""
 fi
 
 # Create tmux session
-# Window 1: named after ticket, runs claude
+# Window 1: named after ticket, runs claude (created automatically by new-session)
 tmux new-session -d -s "$TICKET" -n "$TICKET" -c "$WT_PATH"
-tmux send-keys -t "$TICKET:$TICKET" "$CLAUDE_CMD" Enter
+tmux send-keys -t "$TICKET" "$CLAUDE_CMD" Enter
 
 # Window 2: shell in worktree
-tmux new-window -t "$TICKET" -n "shell" -c "$WT_PATH"
+tmux new-window -t "$TICKET:" -n "shell" -c "$WT_PATH"
 
 # Select window 1 so we land on claude
-tmux select-window -t "$TICKET:$TICKET"
+tmux select-window -t "$TICKET:1"
 
 # Attach
 exec tmux attach -t "$TICKET"
