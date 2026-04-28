@@ -44,8 +44,45 @@ tasks:
     command: sudo ln -sf /usr/share/zoneinfo/America/Los_Angeles /etc/localtime
     when: on-create, on-restart
   - name: Install tmux
-    command: sudo apt install tmux
+    command: sudo apt install tmux -y
     when: on-create
   - name: Add tmux config
     command: curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/.tmux.conf -o ~/.tmux.conf
+    when: on-create
+  - name: Install TPM and tmux plugins
+    command: |
+      git clone https://github.com/tmux-plugins/tpm ~/.tmux/plugins/tpm
+      tmux new-session -d -s setup
+      tmux source-file ~/.tmux.conf
+      ~/.tmux/plugins/tpm/bin/install_plugins
+      tmux kill-session -t setup
+    when: on-create
+  - name: Install initium script
+    command: |
+      mkdir -p ~/bin
+      curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/initium -o ~/bin/initium
+      chmod +x ~/bin/initium
+    when: on-create
+  - name: Install Claude agents
+    command: |
+      mkdir -p /home/user/go-code/.claude/agents
+      curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/agents/lets-begin.md -o /home/user/go-code/.claude/agents/lets-begin.md
+      curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/agents/lomax-it.md -o /home/user/go-code/.claude/agents/lomax-it.md
+      curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/agents/strip-test.md -o /home/user/go-code/.claude/agents/strip-test.md
+    when: on-create
+  - name: Install Claude tmux notification hook
+    command: |
+      mkdir -p ~/.claude/hooks
+      curl -fsSL https://github.com/manuvimal/devpod-config/raw/main/tmux-notify.sh -o ~/.claude/hooks/tmux-notify.sh
+      chmod +x ~/.claude/hooks/tmux-notify.sh
+    when: on-create
+  - name: Add git diffs alias
+    command: git config --global alias.diffs "-c delta.side-by-side=true diff"
+    when: on-create
+  - name: Install delta (side-by-side git diffs)
+    command: |
+      mkdir -p ~/.local/bin
+      DELTA_VERSION=$(curl -fsSL https://api.github.com/repos/dandavison/delta/releases/latest | python3 -c "import sys,json; print(json.load(sys.stdin)['tag_name'])")
+      curl -fsSL "https://github.com/dandavison/delta/releases/download/${DELTA_VERSION}/delta-${DELTA_VERSION}-x86_64-unknown-linux-musl.tar.gz" | \
+        tar -xz --strip-components=1 -C ~/.local/bin "delta-${DELTA_VERSION}-x86_64-unknown-linux-musl/delta"
     when: on-create
